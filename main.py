@@ -13,21 +13,12 @@ from pydicom import dcmread
 #https://github.com/TomSchimansky/CustomTkinter
 
 
-"""
-Define styles font,color etc
-
-
-"""
-
 # =============================================================================
 # customtkinter.set_appearance_mode("Dark")
 # customtkinter.set_default_color_theme("dark-blue")
 # =============================================================================
 
-#ošetřit vstupy (-orvní zmačknutí compos, error při nevybrání cesty)
-#kam ukladat dicom
-#layout GUI
-#
+
 
 
 
@@ -238,36 +229,46 @@ class Main():
             size_XYZ = self.str2int(self.size_XYZ.get())
             patch_layout = self.str2int(self.patch_layout.get())
             patch_overlap = self.str2int(self.patch_overlap.get())
-
+        
             try:
                 self.converted=RawData(self.path_raw).get_converted()   
                 
             except TypeError:
                 self.converted=RawData(self.path_raw.get()).get_converted()   
-    
+        
             self.par = CalParamCalSeq(self.converted,
                                       patch_layout,
                                       patch_overlap,
                                       size_XYZ)
             
+            
+            
             self.merge=MPIMerge(self.par.get_seq(),
                         self.par.get_mat(),
                         self.par.get_mat(),
-                        self.par.get_add_mat(),
+                        self.par.get_ones_mat(),
+                        self.par.get_gauss_mat(),
                         self.par.get_space_coord(),
                         size_XYZ,
                         patch_overlap
                         )
+            self.merge.compose_img()
             self.show_seq()
-        except:
+            
+
+        except ValueError as e:
             tk.messagebox.showwarning(title='Warning',
-                                      message='Insert right parameters')
+                                      message=f'Insert appropriate parameters \n{e}')
+        except TypeError or IndexError:
+            tk.messagebox.showwarning(title='Warning',
+                                      message='I think you mistype parameters.')
         
     def show_seq (self):
         
-        self.img=self.merge.get_compose_img()
+        self.img=self.merge.get_compose_img_wa()
         
         self.display_seq = tk.Toplevel(self.main_window)
+        self.display_seq.title(self.path_dir.get())
         self.display_seq.iconbitmap("merge.ico")
         
         
@@ -277,7 +278,7 @@ class Main():
         
         self.figure = Figure()
         self.sub = self.figure.add_subplot(111)
-        self.sub.imshow(self.img[0,:,:],cmap='gray',vmin=0, vmax=self.img[0,:,:].max())
+        self.sub.imshow(self.img[0,:,:],cmap='gray',vmin=0,vmax=self.img[0,:,:].max())
         
         self.canvas = FigureCanvasTkAgg(self.figure, master=self.frame_canvas )
         self.canvas.draw()
@@ -324,7 +325,7 @@ class Main():
     def update(self):
         self.positon = self.slider.get()
        
-        self.sub.imshow(self.img[self.positon,:,:],cmap='gray',vmin=0, vmax=self.max_from_img())
+        self.sub.imshow(self.img[self.positon,:,:],cmap='gray',vmin=0,vmax=self.img[0,:,:].max())
         self.canvas.draw()
         
         
@@ -635,8 +636,8 @@ class Main():
             
            
             
-            d.Rows=self.par.get_mat().shape[2]
-            d.Columns=self.par.get_mat().shape[1]
+            d.Rows=self.par.get_mat().shape[1]
+            d.Columns=self.par.get_mat().shape[2]
             d.NumberOfFrames=self.par.get_mat().shape[0]
             d.PixelData=self.merge.get_compose_img().tobytes()
             d.InstanceCreationDate=f'{self.time_stamp[2]}.{self.time_stamp[1]}.{self.time_stamp[0]}'
