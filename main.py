@@ -265,7 +265,7 @@ class Main():
         
     def show_seq (self):
         
-        self.img=self.merge.get_compose_img_wa()
+        self.img=self.merge.get_compose_img_a()
         
         self.display_seq = tk.Toplevel(self.main_window)
         self.display_seq.title(self.path_dir.get())
@@ -639,7 +639,7 @@ class Main():
             d.Rows=self.par.get_mat().shape[1]
             d.Columns=self.par.get_mat().shape[2]
             d.NumberOfFrames=self.par.get_mat().shape[0]
-            d.PixelData=self.merge.get_compose_img().tobytes()
+            d.PixelData=self.img.tobytes()
             d.InstanceCreationDate=f'{self.time_stamp[2]}.{self.time_stamp[1]}.{self.time_stamp[0]}'
             d.StudyDate=f'{self.time_stamp[2]}.{self.time_stamp[1]}.{self.time_stamp[0]}'
             d.SeriesDate=f'{self.time_stamp[2]}.{self.time_stamp[1]}.{self.time_stamp[0]}'
