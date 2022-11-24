@@ -1,7 +1,7 @@
 import os
 from struct import unpack
 from re import findall, sub, compile
-from numpy import ones, zeros, divide, reshape, arange, einsum, exp, power,linspace,concatenate,multiply
+from numpy import ones, zeros, divide, reshape, arange, einsum, exp, power,linspace,concatenate,multiply,average
 from math import pi, sqrt
 from itertools import product
 #from scipy.signal import gaussian
@@ -210,6 +210,7 @@ class CalParamCalSeq:
             vect1=1./(sqrt(alpha**pi))*exp(-alpha*power((x1 - r), 2.))
                                    
             final_vect= concatenate([vect1[::-1],vect1[1:]])
+            #final_vect[final_vect>1] =1
         else:
        
             x=linspace(0,2,int(round(length/2)))
@@ -217,7 +218,8 @@ class CalParamCalSeq:
             vect=1./(sqrt(alpha**pi))*exp(-alpha*power((x - r), 2.))
             
             final_vect= concatenate([vect[::-1],vect])
-            
+            #final_vect[final_vect>1] =1
+            #final_vect[final_vect>0.2]=
         return final_vect
     
     def get_gauss_mat(self):
@@ -235,8 +237,8 @@ class CalParamCalSeq:
         gm_z = self.get_gaussian(self.alpha,self.size_XYZ[2],0)
         gauss_3D=einsum('i,j,k->kji',gm_y,gm_x,gm_z)
         gauss_3D[gauss_3D[0,:,:].max()>gauss_3D]=gauss_3D[0,:,:].max()
-        
-        return gauss_3D
+        #gauss_3D[gauss_3D<0.2]=0.2
+        return gauss_3D+2
 
 
     def get_space_coord(self):
@@ -336,6 +338,7 @@ class MPIMerge:
         Return composed sequence. 
 
         """
+        
         self.done_mat_a= divide(self.compose_mat_a,self.divide_mat_a) 
         return(self.done_mat_a.astype('uint16'))
     
@@ -346,7 +349,8 @@ class MPIMerge:
         Return composed sequence. 
 
         """
-        self.done_mat_wa=divide(self.compose_mat_wa,self.divide_mat_wa) 
+        self.done_mat_a= divide(self.compose_mat_a,self.divide_mat_a) 
+        self.done_mat_wa=divide(self.compose_mat_wa,self.divide_mat_wa) #*10+1
         return(self.done_mat_wa.astype('uint16'))
     
 class GetPath:
